@@ -12,11 +12,15 @@
   "license": "ISC",
   "devDependencies": {
     "@types/koa": "^2.13.4",
+    "@types/koa-router": "^7.4.4",
     "nodemon": "^2.0.16"
   },
   "dependencies": {
     "@koa/router": "^10.1.1",
     "dotenv": "^16.0.0",
-    "koa": "^2.13.4"
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.4",
+    "koa-bodyparser": "^4.3.0",
+    "uuid": "^8.3.2"
   }
 }
