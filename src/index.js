@@ -1,12 +1,23 @@
 const Koa = require("koa");
 require("dotenv").config();
+const bodyParser = require("koa-bodyparser");
+const userManagementController = require("./controllers/user-management.controller");
 
-const app = new Koa();
 const PORT = process.env.PORT | 3000;
-// logger
+const app = new Koa();
 
-app.use(async (ctx) => {
-  ctx.body = "Hello World";
-});
+app.use(bodyParser());
+
+registerRoutes(app);
 
 app.listen(PORT, () => console.log(`Listening on http://localhost:${PORT}`));
+
+function registerRoutes(app) {
+  app
+    .use(userManagementController.routes())
+    .use(userManagementController.allowedMethods());
+  console.log(
+    "Register routes:",
+    userManagementController.stack.map((route) => route.path)
+  );
+}
