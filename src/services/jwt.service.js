@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const secret = "a6a0b848-fb12-45e2-9810-f5c0b4968047";
 
 async function createToken(userId) {
   const payload = {
@@ -7,7 +6,7 @@ async function createToken(userId) {
   };
 
   return new Promise((resolve) => {
-    jwt.sign(payload, secret, { expiresIn: "1hr" }, (err, val) => {
+    jwt.sign(payload, process.env.JWT_TOKEN, { expiresIn: "1hr" }, (err, val) => {
       if (err) {
         throw new Error("Failed. Reason: ", err.message);
       }
@@ -18,9 +17,9 @@ async function createToken(userId) {
 
 async function validateToken(token) {
   return new Promise((resolve) => {
-    jwt.verify(token, secret, (err, val) => {
+    jwt.verify(token, process.env.JWT_TOKEN, (err, val) => {
       if (err) {
-        // todo: unauthorized
+        // todo: add unauthorized exception
         throw new Error("Token sign failed.", err.message);
       }
       resolve(val);

@@ -4,7 +4,7 @@ async function tokenValidation(ctx, next) {
   const authHeader = ctx.headers["authorization"];
   const token = authHeader.split(" ")[1];
   if (token && (await validateToken(token))) {
-    next();
+    return next();
   }
 }
 

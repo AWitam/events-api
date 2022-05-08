@@ -1,23 +1,22 @@
-const { v4: uuidv4 } = require("uuid");
-
 const Router = require("@koa/router");
-const {
-  tokenValidation,
-} = require("../middlewares/tokenValidation.middleware");
-const { createToken } = require("../services/jwt.service");
+const { tokenValidation } = require("../middlewares/tokenValidation.middleware");
+const { db } = require("../utils/db.util");
+const { createUser, loginUser } = require("../services/user.service");
 
 const userManagementController = new Router();
 
 userManagementController.post("/register", async (ctx) => {
-  const userId = uuidv4();
-  const token = await createToken(userId);
-  ctx.body = { token };
+  ctx.body = await createUser(ctx);
 });
 
-userManagementController.post("/login", (ctx) => {});
+userManagementController.post("/login", async (ctx) => {
+  ctx.body = await loginUser(ctx);
+});
 
-userManagementController.post("/validate", tokenValidation, (ctx) => {
-  ctx.body = "validated";
+userManagementController.post("/validate", tokenValidation, async (ctx) => {
+  const allUsers = await db.user.findMany();
+
+  ctx.body = allUsers;
 });
 
 module.exports = userManagementController;
