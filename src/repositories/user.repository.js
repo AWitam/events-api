@@ -1,4 +1,5 @@
 const { Prisma } = require("@prisma/client");
+const UserAlreadyExistsException = require("../exceptions/userAlreadyExsists.exception");
 const { db } = require("../utils/db.util");
 
 async function createUserRecord(userData) {
@@ -12,10 +13,9 @@ async function createUserRecord(userData) {
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
-        console.log("User already exists");
+        throw new UserAlreadyExistsException();
       }
     }
-    throw e;
   }
 }
 
