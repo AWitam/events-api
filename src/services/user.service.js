@@ -1,3 +1,4 @@
+const InvalidCredentailException = require("../exceptions/invalidCredentails.exception");
 const { createUserRecord, getUserRecord } = require("../repositories/user.repository");
 const { getHashedPassword, validatePassword } = require("../utils/password.util");
 const { createToken } = require("./jwt.service");
@@ -14,14 +15,12 @@ async function loginUser(ctx) {
   const { email, password } = ctx.request.body;
   const user = await getUserRecord(email);
   if (!user) {
-    ctx.status = 401;
-    return "Invalid email";
+    throw new InvalidCredentailException("Invalid email!");
   }
 
   const isValidPassword = await validatePassword(password, user.password);
   if (!isValidPassword) {
-    ctx.status = 401;
-    return "Wrong password";
+    throw new InvalidCredentailException("Wrong password!");
   }
 
   return await createToken(user.id);

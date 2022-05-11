@@ -12,6 +12,5 @@
       "type": "node"
     }
   ],
-  "runtimeVersion": "16.5.0",
-  "runtimeExecutable": "/home/awitam/.nvm/versions/node/v16.15.0/bin/node"
+  "runtimeVersion": "16.5.0"
 }
