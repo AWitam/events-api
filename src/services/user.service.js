@@ -1,10 +1,17 @@
 const InvalidCredentailException = require("../exceptions/invalidCredentails.exception");
-const { createUserRecord, getUserRecord } = require("../repositories/user.repository");
+const NotFoundException = require("../exceptions/notFound.exception");
+const {
+  createUserRecord,
+  _getUserRecordByEmail,
+  getAllUserRecords,
+  getUserRecordById,
+  updateUserRecord,
+  deleteUserRecord,
+} = require("../repositories/user.repository");
 const { getHashedPassword, validatePassword } = require("../utils/password.util");
 const { createToken } = require("./jwt.service");
 
 async function createUser(ctx) {
-  // TODO: check and exception if there's no required data on request body, check if email is unique
   const { username, email, password } = ctx.request.body;
   const hashedPassword = await getHashedPassword(password);
   const userId = await createUserRecord({ username, email, password: hashedPassword });
@@ -13,7 +20,7 @@ async function createUser(ctx) {
 
 async function loginUser(ctx) {
   const { email, password } = ctx.request.body;
-  const user = await getUserRecord(email);
+  const user = await _getUserRecordByEmail(email);
   if (!user) {
     throw new InvalidCredentailException("Invalid email!");
   }
@@ -26,7 +33,43 @@ async function loginUser(ctx) {
   return await createToken(user.id);
 }
 
+async function getAllUsers(ctx) {
+  // todo: add pagination ?
+  return await getAllUserRecords(ctx);
+}
+
+async function getUserById(ctx) {
+  const id = ctx.request.params.id;
+  const user = await getUserRecordById(Number(id));
+  if (!user) {
+    throw new NotFoundException("User not found!");
+  }
+  return user;
+}
+
+async function updateUser(ctx) {
+  const dataPayload = {
+    id: Number(ctx.request.params.id),
+    newUsername: ctx.request.body.newUsername,
+  };
+
+  return await updateUserRecord(dataPayload);
+}
+
+async function deleteUser(ctx) {
+  const id = ctx.request.params.id;
+  const user = await getUserRecordById(Number(id));
+  if (!user) {
+    throw new NotFoundException("Cannot delete - no user associated with this id");
+  }
+  return await deleteUserRecord(Number(id));
+}
+
 module.exports = {
   createUser,
   loginUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
 };
