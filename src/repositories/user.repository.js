@@ -1,7 +1,3 @@
-const { Prisma } = require("@prisma/client");
-const NotFoundException = require("../exceptions/notFound.exception");
-const UniqueConstraintViolationException = require("../exceptions/uniqueConstraintViolation.exception");
-
 const { db } = require("../utils/db.util");
 
 const userSelect = {
@@ -11,18 +7,12 @@ const userSelect = {
 };
 
 async function createUserRecord(userData) {
-  try {
-    return await db.user.create({
-      data: userData,
-      select: {
-        id: true,
-      },
-    });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      throw new UniqueConstraintViolationException("User already exists!");
-    }
-  }
+  return await db.user.create({
+    data: userData,
+    select: {
+      id: true,
+    },
+  });
 }
 
 async function _getUserRecordByEmail(email) {
@@ -38,12 +28,13 @@ async function _getUserRecordByEmail(email) {
 }
 
 async function getUserRecordById(id) {
-  return await db.user.findUnique({
+  const user = await db.user.findUnique({
     where: {
       id: id,
     },
     select: userSelect,
   });
+  return user;
 }
 
 async function getAllUserRecords() {
@@ -55,21 +46,16 @@ async function getAllUserRecords() {
 async function updateUserRecord(dataPayload) {
   const { id, newUsername } = dataPayload;
   // todo: add two step email and password update... someday :)
-  try {
-    return await db.user.update({
-      where: {
-        id,
-      },
-      data: {
-        username: newUsername,
-      },
-      select: userSelect,
-    });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      throw new UniqueConstraintViolationException("Username is taken!");
-    }
-  }
+
+  return await db.user.update({
+    where: {
+      id,
+    },
+    data: {
+      username: newUsername,
+    },
+    select: userSelect,
+  });
 }
 
 async function deleteUserRecord(id) {

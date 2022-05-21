@@ -1,5 +1,8 @@
+const { Prisma } = require("@prisma/client");
+const BaseException = require("../exceptions/base.exception");
 const InvalidCredentailException = require("../exceptions/invalidCredentails.exception");
 const NotFoundException = require("../exceptions/notFound.exception");
+const UniqueConstraintViolationException = require("../exceptions/uniqueConstraintViolation.exception");
 const {
   createUserRecord,
   _getUserRecordByEmail,
@@ -14,20 +17,24 @@ const { createToken } = require("./jwt.service");
 async function createUser(ctx) {
   const { username, email, password } = ctx.request.body;
   const hashedPassword = await getHashedPassword(password);
-  const userId = await createUserRecord({ username, email, password: hashedPassword });
-  return await createToken(userId);
+
+  try {
+    const userId = await createUserRecord({ username, email, password: hashedPassword });
+    return await createToken(userId);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new UniqueConstraintViolationException("Username or email is already taken!");
+    }
+  }
 }
 
 async function loginUser(ctx) {
   const { email, password } = ctx.request.body;
   const user = await _getUserRecordByEmail(email);
-  if (!user) {
-    throw new InvalidCredentailException("Invalid email!");
-  }
 
-  const isValidPassword = await validatePassword(password, user.password);
+  const isValidPassword = user && (await validatePassword(password, user.password));
   if (!isValidPassword) {
-    throw new InvalidCredentailException("Wrong password!");
+    throw new InvalidCredentailException("Invalid Username or Password!");
   }
 
   return await createToken(user.id);
@@ -44,6 +51,7 @@ async function getUserById(ctx) {
   if (!user) {
     throw new NotFoundException("User not found!");
   }
+
   return user;
 }
 
@@ -52,8 +60,19 @@ async function updateUser(ctx) {
     id: Number(ctx.request.params.id),
     newUsername: ctx.request.body.newUsername,
   };
+  try {
+    return await updateUserRecord(dataPayload);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new UniqueConstraintViolationException("Username is taken!");
+    }
 
-  return await updateUserRecord(dataPayload);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw new NotFoundException("Cannot update - no user associated with this id!");
+    }
+
+    throw new BaseException(500, error.message);
+  }
 }
 
 async function deleteUser(ctx) {
