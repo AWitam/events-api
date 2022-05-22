@@ -1,12 +1,13 @@
-const { db } = require("../utils/db.util");
+import { Prisma } from "@prisma/client";
+import { db } from "../utils/db.util";
 
-const userSelect = {
+const userSelect: Prisma.UserSelect = {
   id: true,
   email: true,
   username: true,
 };
 
-async function createUserRecord(userData) {
+async function createUserRecord(userData: Prisma.UserCreateInput) {
   return await db.user.create({
     data: userData,
     select: {
@@ -15,7 +16,7 @@ async function createUserRecord(userData) {
   });
 }
 
-async function _getUserRecordByEmail(email) {
+async function _getUserRecordByEmail(email: string) {
   return await db.user.findUnique({
     where: {
       email,
@@ -27,7 +28,7 @@ async function _getUserRecordByEmail(email) {
   });
 }
 
-async function getUserRecordById(id) {
+async function getUserRecordById(id: number) {
   const user = await db.user.findUnique({
     where: {
       id: id,
@@ -43,8 +44,7 @@ async function getAllUserRecords() {
   });
 }
 
-async function updateUserRecord(dataPayload) {
-  const { id, newUsername } = dataPayload;
+async function updateUserRecord({ id, newUsername }: { id: number; newUsername: string }) {
   // todo: add two step email and password update... someday :)
 
   return await db.user.update({
@@ -58,7 +58,7 @@ async function updateUserRecord(dataPayload) {
   });
 }
 
-async function deleteUserRecord(id) {
+async function deleteUserRecord(id: number) {
   await db.user.delete({
     where: {
       id,
@@ -66,7 +66,7 @@ async function deleteUserRecord(id) {
   });
 }
 
-module.exports = {
+export {
   createUserRecord,
   _getUserRecordByEmail,
   getAllUserRecords,

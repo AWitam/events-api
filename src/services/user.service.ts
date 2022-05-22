@@ -1,34 +1,36 @@
-const { Prisma } = require("@prisma/client");
-const BaseException = require("../exceptions/base.exception");
-const InvalidCredentailException = require("../exceptions/invalidCredentails.exception");
-const NotFoundException = require("../exceptions/notFound.exception");
-const UniqueConstraintViolationException = require("../exceptions/uniqueConstraintViolation.exception");
-const {
+import { Prisma } from "@prisma/client";
+import BaseException from "../exceptions/base.exception";
+import InvalidCredentailException from "../exceptions/invalidCredentails.exception";
+import NotFoundException from "../exceptions/notFound.exception";
+import UniqueConstraintViolationException from "../exceptions/uniqueConstraintViolation.exception";
+import {
   createUserRecord,
   _getUserRecordByEmail,
   getAllUserRecords,
   getUserRecordById,
   updateUserRecord,
   deleteUserRecord,
-} = require("../repositories/user.repository");
-const { getHashedPassword, validatePassword } = require("../utils/password.util");
-const { createToken } = require("./jwt.service");
+} from "../repositories/user.repository";
+import { getHashedPassword, validatePassword } from "../utils/password.util";
+import { createToken } from "./jwt.service";
+import { Context } from "koa";
 
-async function createUser(ctx) {
+async function createUser(ctx: Context) {
   const { username, email, password } = ctx.request.body;
   const hashedPassword = await getHashedPassword(password);
 
   try {
-    const userId = await createUserRecord({ username, email, password: hashedPassword });
-    return await createToken(userId);
+    const { id } = await createUserRecord({ username, email, password: hashedPassword });
+    return await createToken(id);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       throw new UniqueConstraintViolationException("Username or email is already taken!");
     }
+    throw error;
   }
 }
 
-async function loginUser(ctx) {
+async function loginUser(ctx: Context) {
   const { email, password } = ctx.request.body;
   const user = await _getUserRecordByEmail(email);
 
@@ -40,13 +42,13 @@ async function loginUser(ctx) {
   return await createToken(user.id);
 }
 
-async function getAllUsers(ctx) {
+async function getAllUsers() {
   // todo: add pagination ?
-  return await getAllUserRecords(ctx);
+  return await getAllUserRecords();
 }
 
-async function getUserById(ctx) {
-  const id = ctx.request.params.id;
+async function getUserById(ctx: Context) {
+  const id = ctx.params.id;
   const user = await getUserRecordById(Number(id));
   if (!user) {
     throw new NotFoundException("User not found!");
@@ -55,11 +57,12 @@ async function getUserById(ctx) {
   return user;
 }
 
-async function updateUser(ctx) {
+async function updateUser(ctx: Context) {
   const dataPayload = {
-    id: Number(ctx.request.params.id),
+    id: Number(ctx.params.id),
     newUsername: ctx.request.body.newUsername,
   };
+
   try {
     return await updateUserRecord(dataPayload);
   } catch (error) {
@@ -67,16 +70,18 @@ async function updateUser(ctx) {
       throw new UniqueConstraintViolationException("Username is taken!");
     }
 
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       throw new NotFoundException("Cannot update - no user associated with this id!");
     }
 
-    throw new BaseException(500, error.message);
+    if (error instanceof Error) {
+      throw new BaseException(500, error.message);
+    }
   }
 }
 
-async function deleteUser(ctx) {
-  const id = ctx.request.params.id;
+async function deleteUser(ctx: Context) {
+  const id = ctx.params.id;
   const user = await getUserRecordById(Number(id));
   if (!user) {
     throw new NotFoundException("Cannot delete - no user associated with this id");
@@ -84,11 +89,4 @@ async function deleteUser(ctx) {
   return await deleteUserRecord(Number(id));
 }
 
-module.exports = {
-  createUser,
-  loginUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
-};
+export { createUser, loginUser, getAllUsers, getUserById, updateUser, deleteUser };

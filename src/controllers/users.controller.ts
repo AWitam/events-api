@@ -1,10 +1,10 @@
-const Router = require("@koa/router");
-const { getAllUsers, getUserById, updateUser, deleteUser } = require("../services/user.service");
+import Router from "@koa/router";
+import { getAllUsers, getUserById, updateUser, deleteUser } from "../services/user.service";
 
 const userController = new Router();
 
 userController.get("/users", async (ctx) => {
-  ctx.body = await getAllUsers(ctx);
+  ctx.body = await getAllUsers();
 });
 
 userController.get("/users/:id", async (ctx) => {
@@ -19,4 +19,4 @@ userController.delete("/users/:id", async (ctx) => {
   ctx.body = await deleteUser(ctx);
 });
 
-module.exports = userController;
+export default userController;
