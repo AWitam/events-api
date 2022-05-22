@@ -1,5 +1,8 @@
 class BaseException extends Error {
-  constructor(code, errorMessage) {
+  private code: number;
+  private errorMessage: string;
+
+  constructor(code: number, errorMessage: string) {
     super(`${code} - ${errorMessage}`);
     this.code = code;
     this.errorMessage = errorMessage;
@@ -13,4 +16,4 @@ class BaseException extends Error {
   }
 }
 
-module.exports = BaseException;
+export default BaseException;
