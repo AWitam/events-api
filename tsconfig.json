@@ -6,7 +6,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "preserveConstEnums": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "prisma", ".vscode"]
