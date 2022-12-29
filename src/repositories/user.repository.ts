@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { db } from "../utils/db.util";
+import { RequestContext } from "../interfaces/requestContext.interface";
 
 const userSelect: Prisma.UserSelect = {
   id: true,
@@ -7,8 +7,8 @@ const userSelect: Prisma.UserSelect = {
   username: true,
 };
 
-async function createUserRecord(userData: Prisma.UserCreateInput) {
-  return await db.user.create({
+async function createUserRecord(userData: Prisma.UserCreateInput, ctx: RequestContext) {
+  return await ctx.state.db.user.create({
     data: userData,
     select: {
       id: true,
@@ -16,8 +16,8 @@ async function createUserRecord(userData: Prisma.UserCreateInput) {
   });
 }
 
-async function _getUserRecordByEmail(email: string) {
-  return await db.user.findUnique({
+async function _getUserRecordByEmail(email: string, ctx: RequestContext) {
+  return await ctx.db.user.findUnique({
     where: {
       email,
     },
@@ -28,8 +28,8 @@ async function _getUserRecordByEmail(email: string) {
   });
 }
 
-async function getUserRecordById(id: number) {
-  const user = await db.user.findUnique({
+async function getUserRecordById(id: number, ctx: RequestContext) {
+  const user = await ctx.state.db.user.findUnique({
     where: {
       id: id,
     },
@@ -38,28 +38,26 @@ async function getUserRecordById(id: number) {
   return user;
 }
 
-async function getAllUserRecords() {
-  return await db.user.findMany({
+async function getAllUserRecords(ctx: RequestContext) {
+  return await ctx.state.db.user.findMany({
     select: userSelect,
   });
 }
 
-async function updateUserRecord({ id, newUsername }: { id: number; newUsername: string }) {
-  // todo: add two step email and password update... someday :)
+async function updateUserRecord(userId: number, data: Prisma.UserUpdateInput, ctx: RequestContext) {
+  const { id, newUsername } = ctx.request.body;
 
-  return await db.user.update({
+  return await ctx.state.db.user.update({
     where: {
-      id,
+      id: userId,
     },
-    data: {
-      username: newUsername,
-    },
+    data,
     select: userSelect,
   });
 }
 
-async function deleteUserRecord(id: number) {
-  await db.user.delete({
+async function deleteUserRecord(id: number, ctx: RequestContext) {
+  await ctx.state.db.user.delete({
     where: {
       id,
     },

@@ -1,9 +1,9 @@
 import BaseException from "./base.exception";
 
-class InvalidCredentailException extends BaseException {
+class InvalidCredentialException extends BaseException {
   constructor(errorMessage: string) {
     super(401, errorMessage);
   }
 }
 
-export default InvalidCredentailException;
+export default InvalidCredentialException;

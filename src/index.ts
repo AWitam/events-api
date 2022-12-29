@@ -3,7 +3,8 @@ require("dotenv").config();
 import bodyParser from "koa-bodyparser";
 import authController from "./controllers/auth.controller";
 import userController from "./controllers/users.controller";
-import exceptionHandlerMiddleware from "./middlewares/errorHandler.middleware";
+import { dbConnectionMiddleware } from "./middlewares/dbConnection.middleware";
+import exceptionHandlerMiddleware from "./middlewares/exceptionHandler.middleware";
 import loggerMiddleware from "./middlewares/logger.middleware";
 import { logger } from "./utils/logger.util";
 
@@ -11,6 +12,7 @@ const PORT = process.env.PORT ? process.env.PORT : 3000;
 const app = new Koa();
 
 app.use(loggerMiddleware());
+app.use(dbConnectionMiddleware)
 app.use(exceptionHandlerMiddleware());
 app.use(bodyParser());
 
